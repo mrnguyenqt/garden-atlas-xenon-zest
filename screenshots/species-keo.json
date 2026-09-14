@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/keo-lai",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 737,
+      "bodyTextHash": "01c45ddb06229d8eb8d15ec0fc70502da0874e49ccdbca025c40a57487b3e0ad",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-keo.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 694,
+      "bodyTextHash": "cf804ef639c20bd4f464b4e59f56d96cba0aff8f21b36afd7442ede607b7bcce",
+      "bodyTextPrefix": "Rừng Danh lục Acacia mangium × A. auriculiformis Keo lai Cây Lá ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-keo-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-keo.json"
+}

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 673,
+      "bodyTextHash": "5c0844eb648133fc22d68549e3588c6107e9f9bb6145dfa7fba0834e4063fbe6",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/catalog.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 630,
+      "bodyTextHash": "920fd472de0b6961f1ef84aaa63d8b5f05b7f86c2d1504ef3adb361650c3c251",
+      "bodyTextPrefix": "Rừng DANH LỤC Loài cây lâm nghiệp Tất cả Gỗ quý Trồng rừng Bảo t",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/catalog-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/catalog.json"
+}

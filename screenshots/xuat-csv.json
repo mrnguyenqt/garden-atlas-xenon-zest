@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/xuat-csv",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 345,
+      "bodyTextHash": "6f93f39419427aceea8706cff369db40d3a03de11cd229bfc6c80c0b2bdd33a3",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP HIỆN TRƯỜNG Dự án Điều tra rừng Điều tra tỷ lệ c",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/xuat-csv.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 225,
+      "bodyTextHash": "85e19382e3baa7b426e4c8e363741583fed7f085ef65e3551b0687c29c104e37",
+      "bodyTextPrefix": "Rừng Xuất CSV Tệp UTF-8 (Excel mở được tiếng Việt). Số liệu lấy ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/xuat-csv-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/xuat-csv.json"
+}

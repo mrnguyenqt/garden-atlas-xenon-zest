@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/khoi-tia",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 602,
+      "bodyTextHash": "42b9d148419143a6aa44e355147b31385d730b3de691a3fd92d7ea124a784e62",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-khoi.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 559,
+      "bodyTextHash": "8be3cd7512a02aa9def5bca9c1bb95cd7c2d5393c944028fc3992516dd0a0bf5",
+      "bodyTextPrefix": "Rừng Danh lục Ardisia sylvestris Khôi tía Cây Lá Bảo tồn Cây thu",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-khoi-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-khoi.json"
+}

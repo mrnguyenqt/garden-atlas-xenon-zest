@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/gu-lau",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 618,
+      "bodyTextHash": "021231774a7f6b15c3e6febde21a915684cf83e50904bc83c1240bc4bc8d7622",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-gulau.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 575,
+      "bodyTextHash": "9a00eec37033a919514d9dfa705d084b03a05f4c2ea5070f43471146b8c8ae86",
+      "bodyTextPrefix": "Rừng Danh lục Sindora tonkinensis Gụ lau Cây Lá Gỗ quý Bảo tồn Đ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-gulau-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-gulau.json"
+}

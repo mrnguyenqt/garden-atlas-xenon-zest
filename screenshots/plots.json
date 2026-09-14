@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/o-mau/tru-luong",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 212,
+      "bodyTextHash": "a6d160d4f9f443915843c832158f8d365aad76c1f651f2d49e72342e66df9a25",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Điều tra rừng Công cụ Số liệu điều tra ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/plots.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 161,
+      "bodyTextHash": "8dbd9fb22bd212957534949bb1fe925f9fbcbb896af9b60ef108983e40189bfe",
+      "bodyTextPrefix": "Rừng Điều tra rừng Trữ lượng Ô mới Chưa có ô nào. Tạo ô mới hoặc",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/plots-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/plots.json"
+}

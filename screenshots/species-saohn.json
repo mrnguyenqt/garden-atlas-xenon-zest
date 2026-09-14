@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/sao-hai-nam",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 637,
+      "bodyTextHash": "333dc50fc9ac58e62b7c12a820e48b7b1020cfe2ee5df60393209ccc9ad4fdca",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-saohn.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 594,
+      "bodyTextHash": "72bb0b52521d9d63e93d9080bc1d9354252ab64881f8d6d4609e993e5a1e8f1c",
+      "bodyTextPrefix": "Rừng Danh lục Hopea hainanensis Sao hải nam Cây Lá Gỗ quý Bảo tồ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-saohn-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-saohn.json"
+}

@@ -1,0 +1,7 @@
+.android-sdk/
+.jdk21/
+android/
+android-www/
+.vercel/
+*.apk
+!artifacts/Rung-vang.apk

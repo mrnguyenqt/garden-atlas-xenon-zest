@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/quan-ly-cay",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 259,
+      "bodyTextHash": "dcfe6f2e2f84204ccfffca9d05dadbddfd4c8b943c02bec4d4a11a9df5e6601c",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP HIỆN TRƯỜNG Dự án Điều tra rừng Điều tra tỷ lệ c",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/quan-ly-cay.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 139,
+      "bodyTextHash": "7f4d58b48231e7c4e232ff3b95b0b8fe99037ab1688b4885cec6b67f828233f7",
+      "bodyTextPrefix": "Rừng Quản lý cây Thêm cây Chưa có cây. Gắn mã, loài, D1.3 và tìn",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/quan-ly-cay-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/quan-ly-cay.json"
+}

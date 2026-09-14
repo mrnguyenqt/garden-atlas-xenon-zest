@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/du-an",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 189,
+      "bodyTextHash": "b72370798813d55e55eb3bdde63242ff7f2c1d057ef5c7ed92d29d5be1efae18",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Điều tra rừng Công cụ Số liệu điều tra ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/du-an.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 138,
+      "bodyTextHash": "79c74e215665abd5b4d64afdacf0e4e0a5fd723331b3c09237772076ec78ebe5",
+      "bodyTextPrefix": "Rừng Điều tra rừng Dự án Dự án mới Chưa có dự án. Tạo mới hoặc t",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/du-an-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/du-an.json"
+}

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/ty-le-song",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 261,
+      "bodyTextHash": "975f76a2513ed0787efaee4b871b1fd9959ccbcc9f85ea06ea7eb024b10244c7",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP HIỆN TRƯỜNG Dự án Điều tra rừng Điều tra tỷ lệ c",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/ty-le-song.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 141,
+      "bodyTextHash": "3fb256d2a0f35d0e2eb7c7eed8a8af4fd48f1b4dd3018ad9db92295cd95eb485",
+      "bodyTextPrefix": "Rừng Điều tra tỷ lệ cây sống Đợt mới Tạo dự án trước, rồi nhập s",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/ty-le-song-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/ty-le-song.json"
+}

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/tram-huong",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 676,
+      "bodyTextHash": "9590735d803612bd221542721f2b0aba647e18a1389dd409564d11c435edc1bf",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-tramhuong.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 633,
+      "bodyTextHash": "3e20c05dc91f2d515f2a191b4d7c91c13311b5653ac221e797fff10eda9fc273",
+      "bodyTextPrefix": "Rừng Danh lục Aquilaria crassna Trầm hương Cây Lá Gỗ quý Bảo tồn",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-tramhuong-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-tramhuong.json"
+}

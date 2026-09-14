@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/loai/ban-chua",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 664,
+      "bodyTextHash": "15b6eaa8de8e99b718687fd48ea781c09d295d770c58b131048c6d55ac03849d",
+      "bodyTextPrefix": "Rừng LÂM NGHIỆP Loài cây Ô mẫu Công cụ Số liệu ô mẫu lưu trên má",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-ban.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng",
+      "hasCanvas": false,
+      "bodyTextLen": 621,
+      "bodyTextHash": "3d3cc99dbd0c69dae1c753b0879ec2c65d8766c34d9e364061739aaff9cf14d6",
+      "bodyTextPrefix": "Rừng Danh lục Sonneratia caseolaris Bần chua Cây Lá Ngập mặn Bảo",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/species-ban-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/species-ban.json"
+}

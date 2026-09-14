@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/cong-cu",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Rừng vàng",
+      "hasCanvas": false,
+      "bodyTextLen": 702,
+      "bodyTextHash": "3ffcb156bb04d35ac21799fe6a3a8b93c347750bb2b0143aa8e473b3141bef8f",
+      "bodyTextPrefix": "Rừng vàng Loài cây Điều tra rừng Công cụ Số liệu điều tra rừng l",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Rừng vàng",
+      "hasCanvas": false,
+      "bodyTextLen": 662,
+      "bodyTextHash": "f7092b52c4e2b7f837ab318cfac47071bd594f10d866868fc7babbc87f1ff681",
+      "bodyTextPrefix": "Rừng vàng MÁY TÍNH HIỆN TRƯỜNG Công cụ Thể tích cây đứng V = (C₁",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}
