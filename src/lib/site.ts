@@ -1,3 +1,6 @@
+import { statusLotTree } from "@/lib/lot-info";
+import { projectLotTree } from "@/lib/lot-projects";
+
 export type LocationParts = {
   tieuKhu: string;
   khoanh: string;
@@ -6,53 +9,52 @@ export type LocationParts = {
 
 const EMPTY: LocationParts = { tieuKhu: "", khoanh: "", lo: "" };
 
-/** Tiểu khu → khoảnh from forest-lot inventory. */
-export const TIEU_KHU: Record<string, string[]> = {
-  "814B": ["6A", "7", "8"],
-  "818": ["4A", "7", "9", "10", "11", "12", "13", "14"],
-  "831": [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "7A",
-    "8",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "16a",
-    "16b",
-    "16c",
-    "16d",
-    "17",
-    "18",
-    "18a",
-    "18b",
-    "18c",
-    "19",
-  ],
-  "834": ["1", "2", "3", "4", "5"],
-  "843": ["1", "2", "3", "4", "5", "6", "7", "8"],
-  "844": ["2", "3", "4", "5", "6", "7", "8", "9", "10"],
-  "844E": ["1", "2"],
-  "845A": ["1", "2", "2A", "4", "5"],
-  "845E": ["1", "2"],
-  "846": ["1", "2", "3", "4", "5", "6"],
-  "852A": ["1", "2", "3", "4", "5", "6"],
-  "853S": ["4", "5", "6", "7", "8", "9"],
-  "858A": ["1", "2", "3", "4"],
-  "858S": ["1", "2", "3"],
-};
+function natCmp(a: string, b: string) {
+  return a.localeCompare(b, "vi", { numeric: true, sensitivity: "base" });
+}
 
-export const TIEU_KHU_IDS = Object.keys(TIEU_KHU);
+function mergeLotTrees(
+  a: Record<string, Record<string, string[]>>,
+  b: Record<string, Record<string, string[]>>,
+) {
+  const out: Record<string, Record<string, string[]>> = {};
+  for (const src of [a, b]) {
+    for (const [tk, khs] of Object.entries(src)) {
+      out[tk] ??= {};
+      for (const [kh, los] of Object.entries(khs)) {
+        const list = out[tk][kh] ?? [];
+        for (const lo of los) if (!list.includes(lo)) list.push(lo);
+        out[tk][kh] = list;
+      }
+    }
+  }
+  for (const khs of Object.values(out)) {
+    for (const kh of Object.keys(khs)) khs[kh] = khs[kh].slice().sort(natCmp);
+  }
+  return out;
+}
+
+const STATUS_LOTS = statusLotTree();
+const PROJECT_LOTS = projectLotTree();
+const ALL_LOTS = mergeLotTrees(STATUS_LOTS, PROJECT_LOTS);
+
+export type LotTreeKind = "all" | "status" | "project";
+
+export function lotTree(kind: LotTreeKind = "all") {
+  if (kind === "status") return STATUS_LOTS;
+  if (kind === "project") return PROJECT_LOTS;
+  return ALL_LOTS;
+}
+
+export const TIEU_KHU: Record<string, string[]> = Object.fromEntries(
+  Object.entries(ALL_LOTS).map(([tk, khs]) => [tk, Object.keys(khs).sort(natCmp)]),
+);
+
+export const TIEU_KHU_IDS = Object.keys(ALL_LOTS).sort(natCmp);
+
+export function tieuKhuIds(kind: LotTreeKind = "all") {
+  return Object.keys(lotTree(kind)).sort(natCmp);
+}
 
 export const COMMUNE_UNITS = [
   { id: "hai-lang", label: "Xã Hải Lăng" },
@@ -63,8 +65,33 @@ export const COMMUNE_UNITS = [
 
 export type CommuneId = (typeof COMMUNE_UNITS)[number]["id"];
 
-export function khoanhOf(tieuKhu: string) {
-  return TIEU_KHU[tieuKhu] ?? [];
+export function khoanhOf(tieuKhu: string, kind: LotTreeKind = "all") {
+  return Object.keys(lotTree(kind)[tieuKhu] ?? {}).sort(natCmp);
+}
+
+export function loOf(tieuKhu: string, khoanh: string, kind: LotTreeKind = "all") {
+  return lotTree(kind)[tieuKhu]?.[khoanh] ?? [];
+}
+
+export function lotExists(tieuKhu: string, khoanh: string, lo: string) {
+  return loOf(tieuKhu, khoanh).includes(lo);
+}
+
+export function lotLookup(tieuKhu: string, khoanh: string, lo: string) {
+  const tk = STATUS_LOTS[tieuKhu];
+  const khoanhList = tk ? Object.keys(tk) : [];
+  const loList = loOf(tieuKhu, khoanh, "status");
+  const tieuKhuLoCount = tk ? Object.values(tk).reduce((n, list) => n + list.length, 0) : 0;
+  return {
+    tieuKhu,
+    khoanh,
+    lo,
+    found: loList.includes(lo),
+    khoanhList,
+    loList,
+    tieuKhuLoCount,
+    khoanhCount: khoanhList.length,
+  };
 }
 
 function capture(value: string, re: RegExp) {

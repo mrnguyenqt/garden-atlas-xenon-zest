@@ -1,12 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Calculator, Images, Info, MapPinned, Route, SunMoon, Tag, Trees } from "lucide-react";
+import { Calculator, Images, Info, MapPinned, Route, Shield, SunMoon, Tag, Trees } from "lucide-react";
 import { isDieuTraPath } from "@/components/dieu-tra-nav";
 import { AppearancePicker } from "@/components/appearance-dialog";
 import { ApkDownload } from "@/components/apk-download";
 import { FieldPermPrompt } from "@/components/field-perm-prompt";
 import { FileSaveBanner } from "@/components/file-save-banner";
 import { InfoPerms } from "@/components/runtime-perms";
+import { SecurityLock } from "@/components/security-lock";
+import { SecuritySettings } from "@/components/security-settings";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { APP_AUTHOR, APP_VERSION } from "@/lib/app-version";
 import { installPhoneBack } from "@/lib/phone-nav";
@@ -25,6 +27,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [infoPanel, setInfoPanel] = useState<"info" | "security">("info");
 
   useEffect(() => installPhoneBack(), []);
   useEffect(() => bootPersist(), []);
@@ -145,21 +148,45 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <FieldPermPrompt />
       <FileSaveBanner />
-      <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
-        <DialogContent title="Thông tin">
-          <dl className="grid gap-2">
-            <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-bg-subtle px-4">
-              <dt className="text-sm text-muted">Phiên bản hiện tại</dt>
-              <dd className="font-medium tabular-nums">{APP_VERSION}</dd>
-            </div>
-            <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-bg-subtle px-4">
-              <dt className="text-sm text-muted">Người xây dựng</dt>
-              <dd className="font-medium">{APP_AUTHOR}</dd>
-            </div>
-          </dl>
-          <div className="mt-2">
-            <InfoPerms />
-          </div>
+      <SecurityLock />
+      <Dialog
+        open={infoOpen}
+        onOpenChange={(open) => {
+          setInfoOpen(open);
+          if (!open) setInfoPanel("info");
+        }}
+      >
+        <DialogContent
+          title={infoPanel === "security" ? "Cấu hình bảo mật" : "Thông tin"}
+          className={infoPanel === "security" ? "w-[min(24rem,calc(100vw-2rem))] max-h-[min(40rem,90dvh)]" : undefined}
+        >
+          {infoPanel === "security" ? (
+            <SecuritySettings />
+          ) : (
+            <>
+              <dl className="grid gap-2">
+                <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-bg-subtle px-4">
+                  <dt className="text-sm text-muted">Phiên bản hiện tại</dt>
+                  <dd className="font-medium tabular-nums">{APP_VERSION}</dd>
+                </div>
+                <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-bg-subtle px-4">
+                  <dt className="text-sm text-muted">Người xây dựng</dt>
+                  <dd className="font-medium">{APP_AUTHOR}</dd>
+                </div>
+              </dl>
+              <div className="mt-2">
+                {infoOpen ? <InfoPerms /> : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setInfoPanel("security")}
+                className="mt-2 flex min-h-11 w-full items-center justify-between rounded-xl bg-bg-subtle px-4 text-sm font-medium"
+              >
+                Cấu hình bảo mật
+                <Shield className="size-4 text-muted" />
+              </button>
+            </>
+          )}
         </DialogContent>
       </Dialog>
       <Dialog open={appearanceOpen} onOpenChange={setAppearanceOpen}>

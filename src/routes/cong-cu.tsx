@@ -18,6 +18,10 @@ import { Input } from "@/components/ui/input";
 import { Field, Select } from "@/components/ui/field";
 import { LogPad, MeasurePad, CoordPad } from "@/components/num-pad";
 import { googleMapsUrl, formatMapsLatLng, getVn2000Zone, parseMapsLatLng, useVn2000, VN2000_ZONES, vn2000ToWgs84, wgs84ToVn2000, zoneLabel } from "@/lib/gps";
+import { LocationSelect } from "@/components/location-select";
+import { parseLocationParts } from "@/lib/site";
+import { communeByTieuKhu, communeFull, lotInfoRows } from "@/lib/lot-info";
+import { lotProjectRows } from "@/lib/lot-projects";
 import { cn, nf0, nf1, nf2, nf3 } from "@/lib/utils";
 
 export const Route = createFileRoute("/cong-cu")({ component: ToolsPage });
@@ -27,6 +31,7 @@ const TABS = [
   { id: "log", label: "Gỗ khúc" },
   { id: "density", label: "Mật độ trồng" },
   { id: "maps", label: "Chuyển đổi toạ độ" },
+  { id: "lot", label: "Tra cứu lô rừng" },
 ] as const;
 
 function ToolsPage() {
@@ -58,6 +63,7 @@ function ToolsPage() {
         {tab === "log" ? <LogCalc /> : null}
         {tab === "density" ? <DensityCalc /> : null}
         {tab === "maps" ? <MapsCalc /> : null}
+        {tab === "lot" ? <LotLookup /> : null}
       </div>
     </div>
   );
@@ -265,7 +271,7 @@ function MapsCalc() {
 
       {dir === "to-maps" ? (
         <>
-          <p className="text-sm text-muted">Nhập X(E), Y(N) theo kinh tuyến trục đã chọn.</p>
+          <p className="text-sm text-muted">Nhập X(E), Y(N) theo kinh tuyến trục đã chọn. Ấn giữ ô để dán.</p>
           <CoordPad x={x} y={y} onX={setX} onY={setY} />
           {toMaps ? (
             <>
@@ -359,6 +365,108 @@ function Vn2000ZoneCard() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function LotLookup() {
+  const [view, setView] = useState<"status" | "detail">("status");
+  const [place, setPlace] = useState("");
+  const parts = parseLocationParts(place);
+  const ready = Boolean(parts.tieuKhu && parts.khoanh && parts.lo);
+  const rows = ready ? lotInfoRows(parts.tieuKhu, parts.khoanh, parts.lo) : [];
+  const projects = ready ? lotProjectRows(parts.tieuKhu, parts.khoanh, parts.lo) : [];
+  const xa = communeByTieuKhu(parts.tieuKhu);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => setView("status")}
+          className={cn(
+            "h-11 rounded-full px-3 text-sm font-medium",
+            view === "status" ? "bg-primary text-primary-fg" : "bg-bg-subtle text-muted",
+          )}
+        >
+          Hiện trạng
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("detail")}
+          className={cn(
+            "h-11 rounded-full px-3 text-sm font-medium",
+            view === "detail" ? "bg-primary text-primary-fg" : "bg-bg-subtle text-muted",
+          )}
+        >
+          Lô chi tiết
+        </button>
+      </div>
+      <LocationSelect
+        id="lot-lookup"
+        value={place}
+        onChange={setPlace}
+        kind={view === "detail" ? "project" : "status"}
+      />
+      {!ready ? (
+        <p className="text-sm text-muted">Chọn tiểu khu, khoảnh và lô.</p>
+      ) : view === "status" ? (
+        rows.length === 0 ? (
+          <p className="text-sm text-muted">Không có trong sổ hiện trạng.</p>
+        ) : (
+        <div className="flex flex-col gap-3">
+          {rows.map((row, i) => {
+            const [xa, dt, ldlr, nam, mdsd] = row;
+            return (
+              <div key={`st-${parts.tieuKhu}-${parts.khoanh}-${parts.lo}-${i}`} className="flex flex-col gap-2">
+                {rows.length > 1 ? <p className="text-xs text-muted">Phần {i + 1}</p> : null}
+                <Fact k="Xã / phường" v={communeFull(xa) || "—"} />
+                <Fact k="Diện tích" v={`${nf2.format(dt)} ha`} />
+                <Fact k="LDLR" v={ldlr || "—"} />
+                <Fact k="Năm trồng" v={nam ? String(nam) : "—"} />
+                <Fact k="MDSD" v={mdsd || "—"} />
+              </div>
+            );
+          })}
+          <Fact k="Ghi chú" v="Các lô thuộc bản đồ hiện trạng rừng năm 2025" wrap />
+        </div>
+        )
+      ) : projects.length === 0 ? (
+        <p className="text-sm text-muted">Không có trong sổ thiết kế.</p>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {xa ? <Fact k="Xã / phường" v={xa} /> : null}
+          {projects.map((row, i) => {
+            const [dt, loai, nam, duAn] = row;
+            return (
+              <div key={`pj-${parts.tieuKhu}-${parts.khoanh}-${parts.lo}-${i}`} className="flex flex-col gap-2">
+                {projects.length > 1 ? <p className="text-xs text-muted">Phần {i + 1}</p> : null}
+                <Fact k="DT thiết kế" v={`${nf2.format(dt)} ha`} />
+                <Fact k="Loài cây" v={loai || "—"} />
+                <Fact k="Năm trồng" v={nam ? String(nam) : "—"} />
+                <Fact k="Dự án" v={duAn || "—"} />
+              </div>
+            );
+          })}
+          <Fact k="Ghi chú" v="Số liệu chỉ mang tính chất tham khảo" wrap />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Fact({ k, v, wrap }: { k: string; v: string; wrap?: boolean }) {
+  return (
+    <div className="flex min-h-11 items-start justify-between gap-3 rounded-md bg-bg-subtle px-4 py-3">
+      <p className="shrink-0 text-sm text-muted">{k}</p>
+      <p
+        className={cn(
+          "min-w-0 text-right text-sm font-medium",
+          wrap ? "leading-snug" : "truncate whitespace-nowrap",
+        )}
+      >
+        {v}
+      </p>
     </div>
   );
 }

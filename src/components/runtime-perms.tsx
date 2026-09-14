@@ -8,6 +8,7 @@ import {
   type FieldPermStatus,
   type PermState,
 } from "@/lib/device-permissions";
+import { appFolderPath } from "@/lib/app-folder";
 import { cn } from "@/lib/utils";
 
 export function RuntimePerms() {
@@ -61,7 +62,13 @@ export function InfoPerms() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    void queryFieldPerms().then(setStatus);
+    let live = true;
+    void queryFieldPerms().then((s) => {
+      if (live) setStatus(s);
+    });
+    return () => {
+      live = false;
+    };
   }, []);
 
   async function ask() {
@@ -75,11 +82,18 @@ export function InfoPerms() {
   }
 
   const needAsk = status?.location !== "granted" || status?.camera !== "granted";
+  const folder = appFolderPath();
 
   return (
     <div className="grid gap-2">
       <PermLine label="Quyền vị trí" state={status?.location} />
       <PermLine label="Quyền camera" state={status?.camera} />
+      {folder ? (
+        <div className="rounded-xl bg-bg-subtle px-4 py-3">
+          <p className="text-sm text-muted">Thư mục trên máy</p>
+          <p className="mt-1 break-all text-sm font-medium">{folder}</p>
+        </div>
+      ) : null}
       {needAsk ? (
         <Button className="mt-1 w-full" onClick={() => void ask()} disabled={busy}>
           {busy ? "Đang hỏi máy…" : "Xin cấp quyền truy cập"}

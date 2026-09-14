@@ -11,6 +11,7 @@ import { usePlots, findDuplicatePlot, type Plot } from "@/lib/store";
 import { useOps } from "@/lib/ops";
 import { FOREST_KINDS, PLOT_PRESETS, STAND_STATUS } from "@/lib/forestry";
 import { formatDate, formatTime } from "@/lib/utils";
+import { parseLocationParts } from "@/lib/site";
 
 const CODE_PREFIX = "OTC-";
 
@@ -54,7 +55,7 @@ const EMPTY: PlotDraft = {
   name: "OTC-",
   projectId: "",
   location: "",
-  forestSlug: "san-xuat",
+  forestSlug: "",
   shape: "circle",
   radiusM: 12.62,
   widthM: 10,
@@ -68,7 +69,7 @@ const EMPTY: PlotDraft = {
   date: "",
   notes: "",
   surveyor: "",
-  stand: "Rừng trồng",
+  stand: "",
 };
 
 function matchPreset(d: PlotDraft) {
@@ -98,15 +99,17 @@ export function PlotForm({
     name: withCodePrefix(initial?.name ?? EMPTY.name),
     date: initial?.date || new Date().toISOString(),
   }));
-  const [preset, setPreset] = useState<string>(() => matchPreset({ ...EMPTY, ...initial }));
+  const [preset, setPreset] = useState<string>(() => (initial ? matchPreset({ ...EMPTY, ...initial }) : ""));
   const [dupError, setDupError] = useState("");
   const [gpsError, setGpsError] = useState("");
+  const [formError, setFormError] = useState("");
   const projects = useOps((s) => s.projects);
   const plots = usePlots((s) => s.plots);
   const surveyors = rankSurveyors(SURVEYORS, plots, draft.surveyor);
 
   function set<K extends keyof PlotDraft>(key: K, value: PlotDraft[K]) {
     setDupError("");
+    setFormError("");
     setDraft((d) => ({ ...d, [key]: value }));
   }
 
@@ -123,6 +126,24 @@ export function PlotForm({
     }));
   }
 
+  const loc = parseLocationParts(draft.location);
+  const codeRest = draft.name.startsWith(CODE_PREFIX) ? draft.name.slice(CODE_PREFIX.length) : draft.name;
+  const missing: string[] = [];
+  if (!draft.projectId) missing.push("dự án");
+  if (!codeRest.trim()) missing.push("số hiệu ô");
+  if (!loc.tieuKhu) missing.push("tiểu khu");
+  if (!loc.khoanh) missing.push("khoảnh");
+  if (!loc.lo.trim()) missing.push("lô");
+  if (!draft.forestSlug) missing.push("loại rừng");
+  if (!draft.stand) missing.push("trạng thái");
+  if (!preset) missing.push("cỡ ô");
+  if (preset === "bang") {
+    if (!(Number(draft.lengthM) > 0)) missing.push("chiều dài băng");
+    if (!(Number(draft.widthM) > 0)) missing.push("chiều rộng băng");
+  }
+  if (!draft.surveyor) missing.push("người lập");
+  if (!excludeId && !isGpsVerified(draft)) missing.push("kiểm tra GPS");
+
   return (
     <form
       className="flex flex-col gap-4"
@@ -130,7 +151,10 @@ export function PlotForm({
         e.preventDefault();
         e.stopPropagation();
         const name = withCodePrefix(draft.name.trim());
-        if (!name.slice(CODE_PREFIX.length).trim()) return;
+        if (missing.length) {
+          setFormError(`Nhập đủ: ${missing.join(", ")}.`);
+          return;
+        }
         if (findDuplicatePlot(plots, name, draft.location, draft.projectId ?? "", excludeId)) {
           setDupError("Số hiệu ô đã có trong cùng tiểu khu, khoảnh, lô của dự án này.");
           return;
@@ -156,31 +180,40 @@ export function PlotForm({
         });
       }}
     >
-      <Field label="Dự án" htmlFor="plot-prj">
+      <Field label="Dự án" htmlFor="plot-prj" required>
         <Select
           id="plot-prj"
           value={draft.projectId}
           onChange={(e) => set("projectId", e.target.value)}
         >
-          <option value="">Chưa gắn dự án</option>
+          <option value="">Chọn dự án</option>
           {projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
           ))}
         </Select>
+        {projects.length === 0 ? (
+          <p className="text-xs text-danger">Tạo dự án trước khi lập ô tiêu chuẩn.</p>
+        ) : null}
       </Field>
-      <Field label="Số hiệu ô" htmlFor="plot-name">
+      <Field label="Số hiệu ô" htmlFor="plot-name" required>
         <div className="flex h-11 overflow-hidden rounded-sm bg-bg-subtle shadow-(--shadow-border) focus-within:ring-2 focus-within:ring-primary/40">
           <span className="flex items-center pl-3 text-sm text-muted select-none">{CODE_PREFIX}</span>
           <input
             id="plot-name"
             required
+            enterKeyHint="done"
             className="h-11 min-w-0 flex-1 bg-transparent pr-3 text-sm text-fg outline-none placeholder:text-subtle"
             value={draft.name.startsWith(CODE_PREFIX) ? draft.name.slice(CODE_PREFIX.length) : draft.name}
             onChange={(e) => {
               const rest = e.target.value.replace(/^OTC-?/i, "");
               set("name", CODE_PREFIX + rest);
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              e.currentTarget.blur();
             }}
             placeholder="01"
             autoComplete="off"
@@ -219,12 +252,13 @@ export function PlotForm({
         </p>
       ) : null}
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Loại rừng" htmlFor="plot-forest">
+        <Field label="Loại rừng" htmlFor="plot-forest" required>
           <Select
             id="plot-forest"
             value={draft.forestSlug}
             onChange={(e) => set("forestSlug", e.target.value)}
           >
+            <option value="">Chọn</option>
             {FOREST_KINDS.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.label}
@@ -232,8 +266,9 @@ export function PlotForm({
             ))}
           </Select>
         </Field>
-        <Field label="Trạng thái" htmlFor="plot-stand">
+        <Field label="Trạng thái" htmlFor="plot-stand" required>
           <Select id="plot-stand" value={draft.stand} onChange={(e) => set("stand", e.target.value)}>
+            <option value="">Chọn</option>
             {STAND_STATUS.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -242,8 +277,9 @@ export function PlotForm({
           </Select>
         </Field>
       </div>
-      <Field label="Cỡ ô" htmlFor="plot-preset">
+      <Field label="Cỡ ô" htmlFor="plot-preset" required>
         <Select id="plot-preset" value={preset} onChange={(e) => applyPreset(e.target.value)}>
+          <option value="">Chọn</option>
           {PLOT_PRESETS.map((p) => (
             <option key={p.id} value={p.id}>
               {p.label}
@@ -253,25 +289,27 @@ export function PlotForm({
       </Field>
       {preset === "bang" ? (
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Chiều dài băng (m)" htmlFor="plot-l">
+          <Field label="Chiều dài băng (m)" htmlFor="plot-l" required>
             <Input
               id="plot-l"
+              required
               inputMode="decimal"
-              value={draft.lengthM}
+              value={draft.lengthM || ""}
               onChange={(e) => set("lengthM", Number(e.target.value))}
             />
           </Field>
-          <Field label="Chiều rộng băng (m)" htmlFor="plot-w">
+          <Field label="Chiều rộng băng (m)" htmlFor="plot-w" required>
             <Input
               id="plot-w"
+              required
               inputMode="decimal"
-              value={draft.widthM}
+              value={draft.widthM || ""}
               onChange={(e) => set("widthM", Number(e.target.value))}
             />
           </Field>
         </div>
       ) : null}
-      <Field label="Người lập" htmlFor="plot-surveyor">
+      <Field label="Người lập" htmlFor="plot-surveyor" required>
         <Select
           id="plot-surveyor"
           value={draft.surveyor}
@@ -298,7 +336,10 @@ export function PlotForm({
           placeholder="Lập địa, dốc, cháy…"
         />
       </Field>
-      <Button type="submit">{submitLabel}</Button>
+      {formError ? <p className="text-sm text-danger">{formError}</p> : null}
+      <Button type="submit" disabled={missing.length > 0}>
+        {submitLabel}
+      </Button>
     </form>
   );
 }

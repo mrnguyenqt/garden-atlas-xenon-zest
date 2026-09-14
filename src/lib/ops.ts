@@ -144,6 +144,12 @@ export function survivalRate(planted: number, alive: number) {
   return (alive / planted) * 100;
 }
 
+/** Số cây dự kiến trên băng = floor(dài / khoảng cách) + 1. */
+export function expectedTreesOnStrip(lengthM: number, spacingM: number) {
+  if (!(lengthM > 0) || !(spacingM > 0)) return 0;
+  return Math.floor(lengthM / spacingM) + 1;
+}
+
 export function expectedTrees(project: Project) {
   return Math.round(project.areaHa * project.density);
 }
@@ -334,29 +340,33 @@ export const useOps = create<OpsState>()(
       version: 8,
       skipHydration: true,
       migrate: (persisted) => {
-        const state = persisted as OpsState;
-        return {
-          ...state,
-          projects: (state.projects ?? []).map((p) => ({
-            ...p,
-            location: locationFromLegacy(p),
-          })),
-          survivals: (state.survivals ?? []).map((s) => ({
-            ...s,
-            plotId: s.plotId ?? "",
-            method: s.method || "o-tieu-chuan",
-            speciesSlug: s.speciesSlug ?? "",
-            dead: s.dead ?? Math.max(0, (s.planted ?? 0) - (s.alive ?? 0)),
-            replanted: s.replanted ?? 0,
-            stems: s.stems ?? [],
-            widthM: s.widthM ?? 0,
-            lengthM: s.lengthM ?? 0,
-          })),
-          trees: (state.trees ?? []).map((t) => ({
-            ...t,
-            location: locationFromLegacy(t),
-          })),
-        };
+        try {
+          const state = persisted as OpsState;
+          return {
+            ...state,
+            projects: (state.projects ?? []).map((p) => ({
+              ...p,
+              location: locationFromLegacy(p),
+            })),
+            survivals: (state.survivals ?? []).map((s) => ({
+              ...s,
+              plotId: s.plotId ?? "",
+              method: s.method || "o-tieu-chuan",
+              speciesSlug: s.speciesSlug ?? "",
+              dead: s.dead ?? Math.max(0, (s.planted ?? 0) - (s.alive ?? 0)),
+              replanted: s.replanted ?? 0,
+              stems: s.stems ?? [],
+              widthM: s.widthM ?? 0,
+              lengthM: s.lengthM ?? 0,
+            })),
+            trees: (state.trees ?? []).map((t) => ({
+              ...t,
+              location: locationFromLegacy(t),
+            })),
+          };
+        } catch {
+          return persisted as OpsState;
+        }
       },
     },
   ),

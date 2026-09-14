@@ -2,7 +2,7 @@ import { csvDate, csvNum, csvNumOrEmpty, csvStamp, saveFileAs } from "@/lib/csv"
 import { excelFile } from "@/lib/excel";
 import { forestKindLabel, plotAreaM2 } from "@/lib/forestry";
 import { findSpecies } from "@/lib/custom-species";
-import { survivalMethodLabel, survivalRate, type SurvivalCheck } from "@/lib/ops";
+import { expectedTreesOnStrip, survivalMethodLabel, survivalRate, type SurvivalCheck } from "@/lib/ops";
 import { parseLocationParts } from "@/lib/site";
 import { treeFormFactor, type Plot } from "@/lib/store";
 
@@ -67,6 +67,7 @@ export const TY_LE_SONG_HEADERS = [
   "Ngày",
   "Dài băng (m)",
   "Khoảng cách cây (m)",
+  "Dự kiến cây trên băng",
   "Trồng",
   "Sống",
   "Chết",
@@ -148,6 +149,7 @@ export function tyLeSongTable(
     const plot = plotOf(s.plotId);
     const loc = parseLocationParts(plot?.location ?? "");
     const bang = s.method === "bang";
+    const expected = expectedTreesOnStrip(s.lengthM, s.widthM);
     return [
       survivalProjectName(s, plot, projects),
       i + 1,
@@ -158,8 +160,9 @@ export function tyLeSongTable(
       survivalMethodLabel(s.method || "o-tieu-chuan"),
       s.name || findSpecies(s.speciesSlug)?.name || s.speciesSlug,
       csvDate(s.date),
-      bang ? csvNumOrEmpty(s.lengthM, 1) : "",
-      bang ? csvNumOrEmpty(s.widthM, 1) : "",
+      bang || s.lengthM > 0 ? csvNumOrEmpty(s.lengthM, 1) : "",
+      bang || s.widthM > 0 ? csvNumOrEmpty(s.widthM, 1) : "",
+      expected > 0 ? csvNum(expected, 0) : "",
       csvNum(s.planted, 0),
       csvNum(s.alive, 0),
       csvNum(s.dead ?? Math.max(0, s.planted - s.alive), 0),

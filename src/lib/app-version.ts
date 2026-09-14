@@ -1,14 +1,14 @@
 export const APP_NAME = "Rừng vàng";
-export const APP_VERSION = "1.21";
-export const APP_BUILD = "RVver1.21";
-export const APP_RELEASED = "2026-09-13";
+export const APP_VERSION = "1.23";
+export const APP_BUILD = "RVver1.23";
+export const APP_RELEASED = "2026-09-14";
 export const APP_AUTHOR = "Đăng Nguyên";
 
 export const APK_SIGNER = "CN=Dang Nguyen";
 export const APK_SIG_SCHEMES = "v2 + v3";
 export const APK_CERT_SHA256 = "7A35A95FE4765A2386A63F675E411D4D72433370CFD65FC61995553BC1DE0914";
 export const APK_PACKAGE = "vn.rungvang.app";
-export const APK_FILE_SHA256 = "F6DB1A5B1C03469D05EA5CE064FAE1E5AF1B91CCD2DDDF8AFD7C59DDD91C029B";
+export const APK_FILE_SHA256 = "B68493E6094D546ED3FC1A31DD0F957CEEFF34D076F16ECB62176AC0CC190AE7";
 
 export function apkCertFingerprint() {
   return APK_CERT_SHA256.replace(/(.{2})/g, "$1:").slice(0, -1);
@@ -20,7 +20,7 @@ export const APK_SECURITY = [
   { ok: true, label: "Debuggable", detail: "Tắt — bản phát hành" },
   { ok: true, label: "Sao lưu ADB", detail: "Tắt — số liệu không trích ra máy khác" },
   { ok: true, label: "HTTP rõ", detail: "Cấm — chỉ HTTPS" },
-  { ok: true, label: "FileProvider", detail: "Không xuất, giới hạn thư mục ảnh" },
+  { ok: true, label: "WebView", detail: "Tắt debug, cấm mixed content; xóa cache khi cập nhật" },
 ] as const;
 
 export const RELEASES: {
@@ -29,6 +29,22 @@ export const RELEASES: {
   date: string;
   notes: string[];
 }[] = [
+  {
+    version: "1.23",
+    build: "RVver1.23",
+    date: "2026-09-14",
+    notes: [
+      "Cấu hình bảo mật (PIN, chặn chụp màn hình); sửa lỗi giao diện khi cập nhật APK",
+    ],
+  },
+  {
+    version: "1.22",
+    build: "RVver1.22",
+    date: "2026-09-14",
+    notes: [
+      "Tra cứu lô rừng (Hiện trạng 2025 + Lô chi tiết JBIC); dán toạ độ X/Y; thư mục Documents/RungVang không vào thư viện ảnh",
+    ],
+  },
   {
     version: "1.21",
     build: "RVver1.21",

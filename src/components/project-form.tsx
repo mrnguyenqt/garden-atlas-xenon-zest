@@ -12,18 +12,29 @@ import {
   type ProjectKind,
   type ProjectStatus,
 } from "@/lib/ops";
+import { parseCommunes } from "@/lib/site";
 
 const EMPTY: ProjectDraft = {
   name: "",
   location: "",
-  kind: "trong",
-  status: "dang-lam",
-  areaHa: 1,
-  speciesSlug: "keo-lai",
-  year: new Date().getFullYear(),
-  density: 1667,
+  kind: "" as ProjectKind,
+  status: "" as ProjectStatus,
+  areaHa: 0,
+  speciesSlug: "",
+  year: 0,
+  density: 0,
   notes: "",
 };
+
+function parsePositive(s: string) {
+  const n = Number(s.trim().replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : NaN;
+}
+
+function parseYear(s: string) {
+  const n = Number(s.trim());
+  return Number.isInteger(n) && n >= 1990 && n <= 2100 ? n : NaN;
+}
 
 export function ProjectForm({
   initial,
@@ -35,29 +46,48 @@ export function ProjectForm({
   onSubmit: (draft: ProjectDraft) => void;
 }) {
   const [draft, setDraft] = useState<ProjectDraft>({ ...EMPTY, ...initial });
-  const [area, setArea] = useState(String(initial?.areaHa ?? EMPTY.areaHa));
-  const [year, setYear] = useState(String(initial?.year ?? EMPTY.year));
-  const [density, setDensity] = useState(String(initial?.density ?? EMPTY.density));
+  const [area, setArea] = useState(initial?.areaHa != null ? String(initial.areaHa) : "");
+  const [year, setYear] = useState(initial?.year != null ? String(initial.year) : "");
+  const [density, setDensity] = useState(initial?.density != null ? String(initial.density) : "");
+  const [error, setError] = useState("");
 
   function set<K extends keyof ProjectDraft>(key: K, value: ProjectDraft[K]) {
+    setError("");
     setDraft((d) => ({ ...d, [key]: value }));
   }
+
+  const areaHa = parsePositive(area);
+  const yearN = parseYear(year);
+  const densityN = parsePositive(density);
+  const missing: string[] = [];
+  if (!draft.name.trim()) missing.push("tên dự án");
+  if (!parseCommunes(draft.location).length) missing.push("xã / phường");
+  if (!draft.kind) missing.push("loại");
+  if (!draft.status) missing.push("trạng thái");
+  if (!draft.speciesSlug) missing.push("loài");
+  if (!Number.isFinite(areaHa)) missing.push("diện tích");
+  if (!Number.isFinite(yearN)) missing.push("năm");
+  if (!Number.isFinite(densityN)) missing.push("mật độ");
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!draft.name.trim()) return;
+        if (missing.length) {
+          setError(`Nhập đủ: ${missing.join(", ")}.`);
+          return;
+        }
         onSubmit({
           ...draft,
-          areaHa: parseNum(area),
-          year: parseNum(year) || new Date().getFullYear(),
-          density: parseNum(density),
+          name: draft.name.trim(),
+          areaHa,
+          year: yearN,
+          density: densityN,
         });
       }}
     >
-      <Field label="Tên dự án" htmlFor="prj-name">
+      <Field label="Tên dự án" htmlFor="prj-name" required>
         <Input
           id="prj-name"
           required
@@ -72,12 +102,13 @@ export function ProjectForm({
         onChange={(location) => set("location", location)}
       />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Loại" htmlFor="prj-kind">
+        <Field label="Loại" htmlFor="prj-kind" required>
           <Select
             id="prj-kind"
             value={draft.kind}
             onChange={(e) => set("kind", e.target.value as ProjectKind)}
           >
+            <option value="">Chọn</option>
             {PROJECT_KINDS.map((k) => (
               <option key={k.id} value={k.id}>
                 {k.label}
@@ -85,12 +116,13 @@ export function ProjectForm({
             ))}
           </Select>
         </Field>
-        <Field label="Trạng thái" htmlFor="prj-st">
+        <Field label="Trạng thái" htmlFor="prj-st" required>
           <Select
             id="prj-st"
             value={draft.status}
             onChange={(e) => set("status", e.target.value as ProjectStatus)}
           >
+            <option value="">Chọn</option>
             {PROJECT_STATUS.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.label}
@@ -99,7 +131,7 @@ export function ProjectForm({
           </Select>
         </Field>
       </div>
-      <Field label="Loài" htmlFor="prj-sp">
+      <Field label="Loài" htmlFor="prj-sp" required>
         <SpeciesSelect
           id="prj-sp"
           value={draft.speciesSlug}
@@ -107,32 +139,44 @@ export function ProjectForm({
         />
       </Field>
       <div className="grid grid-cols-3 gap-3">
-        <Field label="Diện tích (ha)" htmlFor="prj-ha">
+        <Field label="Diện tích (ha)" htmlFor="prj-ha" required>
           <Input
             id="prj-ha"
+            required
             inputMode="decimal"
             value={area}
-            onChange={(e) => setArea(e.target.value)}
+            onChange={(e) => {
+              setError("");
+              setArea(e.target.value);
+            }}
             placeholder="12,5"
             autoComplete="off"
           />
         </Field>
-        <Field label="Năm" htmlFor="prj-year">
+        <Field label="Năm" htmlFor="prj-year" required>
           <Input
             id="prj-year"
+            required
             inputMode="numeric"
             value={year}
-            onChange={(e) => setYear(e.target.value)}
-            placeholder="2024"
+            onChange={(e) => {
+              setError("");
+              setYear(e.target.value);
+            }}
+            placeholder="2026"
             autoComplete="off"
           />
         </Field>
-        <Field label="Mật độ /ha" htmlFor="prj-den">
+        <Field label="Mật độ /ha" htmlFor="prj-den" required>
           <Input
             id="prj-den"
+            required
             inputMode="numeric"
             value={density}
-            onChange={(e) => setDensity(e.target.value)}
+            onChange={(e) => {
+              setError("");
+              setDensity(e.target.value);
+            }}
             placeholder="1667"
             autoComplete="off"
           />
@@ -146,12 +190,10 @@ export function ProjectForm({
           placeholder="Cự ly, lập địa…"
         />
       </Field>
-      <Button type="submit">{submitLabel}</Button>
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
+      <Button type="submit" disabled={missing.length > 0}>
+        {submitLabel}
+      </Button>
     </form>
   );
-}
-
-function parseNum(s: string) {
-  const n = Number(s.trim().replace(",", "."));
-  return Number.isFinite(n) ? n : 0;
 }

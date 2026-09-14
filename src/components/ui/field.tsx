@@ -19,16 +19,19 @@ export function Field({
   htmlFor,
   children,
   className,
+  required,
 }: {
   label: string;
   htmlFor?: string;
   children: ReactNode;
   className?: string;
+  required?: boolean;
 }) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-2", className)}>
       <label htmlFor={htmlFor} className="text-sm font-medium text-muted">
         {label}
+        {required ? <span className="text-danger"> *</span> : null}
       </label>
       {children}
     </div>

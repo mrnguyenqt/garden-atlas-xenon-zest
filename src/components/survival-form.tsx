@@ -8,6 +8,7 @@ import { findSpecies } from "@/lib/custom-species";
 import { SPECIES } from "@/lib/catalog";
 import {
   STEM_STATUS,
+  expectedTreesOnStrip,
   survivalRate,
   type CountedStem,
   type Project,
@@ -56,8 +57,7 @@ export function SurvivalForm({
   const rate = survivalRate(planted, alive);
   const spacing = Number(widthM);
   const length = Number(lengthM);
-  const expectedOnStrip =
-    bang && spacing > 0 && length > 0 ? Math.floor(length / spacing) + 1 : 0;
+  const expectedOnStrip = bang ? expectedTreesOnStrip(length, spacing) : 0;
 
   function addStem(status: StemStatus) {
     setStems((list) => [...list, { id: crypto.randomUUID(), status, at: new Date().toISOString() }]);

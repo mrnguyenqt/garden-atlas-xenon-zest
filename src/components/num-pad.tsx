@@ -27,6 +27,29 @@ export function applyNumKey(
 
 type DualTarget = "left" | "right";
 
+function digitsOf(text: string, maxInt: number, maxDec: number) {
+  const t = text.trim().replace(",", ".");
+  const m = t.match(/-?\d+(?:\.\d+)?/);
+  if (!m) return "";
+  const [i = "", d] = m[0].replace(/^-/, "").split(".");
+  const int = i.slice(0, maxInt);
+  if (maxDec <= 0) return int;
+  if (d === undefined) return int;
+  return `${int}.${d.slice(0, maxDec)}`;
+}
+
+/** Một số → ô đang chọn; hai số (dấu phẩy/cách) → X và Y. */
+export function parseCoordPaste(text: string, maxInt = 8, maxDec = 0) {
+  const parts = text
+    .trim()
+    .split(/[,;/\s]+/)
+    .map((p) => digitsOf(p, maxInt, maxDec))
+    .filter(Boolean);
+  if (parts.length >= 2) return { left: parts[0], right: parts[1] };
+  if (parts.length === 1) return { one: parts[0] };
+  return {};
+}
+
 function DualPad({
   leftId,
   rightId,
@@ -39,6 +62,7 @@ function DualPad({
   maxInt = 5,
   maxDec = 2,
   emptyLabel = "0",
+  nativeInput = false,
 }: {
   leftId: string;
   rightId: string;
@@ -51,6 +75,7 @@ function DualPad({
   maxInt?: number;
   maxDec?: number;
   emptyLabel?: string;
+  nativeInput?: boolean;
 }) {
   const [active, setActive] = useState<DualTarget | null>(null);
   const [fresh, setFresh] = useState(true);
@@ -73,6 +98,20 @@ function DualPad({
     setFresh(false);
   }
 
+  function applyPaste(target: DualTarget, text: string) {
+    const parsed = parseCoordPaste(text, maxInt, maxDec);
+    if (parsed.left && parsed.right) {
+      onLeft(parsed.left);
+      onRight(parsed.right);
+      setActive(null);
+      return;
+    }
+    if (parsed.one) {
+      (target === "left" ? onLeft : onRight)(parsed.one);
+      setFresh(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-3">
@@ -82,7 +121,10 @@ function DualPad({
             value={left}
             active={active === "left"}
             emptyLabel={emptyLabel}
+            nativeInput={nativeInput}
             onOpen={() => open("left")}
+            onChange={(v) => onLeft(digitsOf(v, maxInt, maxDec) || v.replace(/[^\d.]/g, "").slice(0, maxInt + (maxDec ? maxDec + 1 : 0)))}
+            onPasteText={(text) => applyPaste("left", text)}
           />
         </Field>
         <Field label={rightLabel} htmlFor={rightId}>
@@ -91,7 +133,10 @@ function DualPad({
             value={right}
             active={active === "right"}
             emptyLabel={emptyLabel}
+            nativeInput={nativeInput}
             onOpen={() => open("right")}
+            onChange={(v) => onRight(digitsOf(v, maxInt, maxDec) || v.replace(/[^\d.]/g, "").slice(0, maxInt + (maxDec ? maxDec + 1 : 0)))}
+            onPasteText={(text) => applyPaste("right", text)}
           />
         </Field>
       </div>
@@ -169,6 +214,7 @@ export function CoordPad({
       maxInt={maxInt}
       maxDec={maxDec}
       emptyLabel=""
+      nativeInput
     />
   );
 }
@@ -234,22 +280,60 @@ export function MeasureDisplay({
   active,
   emptyLabel,
   onOpen,
+  nativeInput = false,
+  onChange,
+  onPasteText,
 }: {
   id: string;
   value: string;
   active: boolean;
   emptyLabel: string;
   onOpen: () => void;
+  nativeInput?: boolean;
+  onChange?: (value: string) => void;
+  onPasteText?: (text: string) => void;
 }) {
+  const box = cn(
+    "flex h-11 w-full items-center rounded-sm bg-bg-subtle px-3 text-left text-sm tabular-nums shadow-(--shadow-border)",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+    active ? "ring-2 ring-primary/40 text-fg" : value ? "text-fg" : "text-muted",
+  );
+
+  if (nativeInput) {
+    return (
+      <input
+        id={id}
+        value={value}
+        inputMode="numeric"
+        enterKeyHint="done"
+        autoComplete="off"
+        autoCorrect="off"
+        spellCheck={false}
+        placeholder={emptyLabel || "Nhập"}
+        className={cn(box, "placeholder:text-muted")}
+        onFocus={onOpen}
+        onChange={(e) => onChange?.(e.target.value)}
+        onPaste={(e) => {
+          const text = e.clipboardData?.getData("text") ?? "";
+          if (!text || !onPasteText) return;
+          e.preventDefault();
+          onPasteText(text);
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          e.currentTarget.blur();
+        }}
+      />
+    );
+  }
+
   return (
     <button
       id={id}
       type="button"
       onClick={onOpen}
-      className={cn(
-        "flex h-11 w-full items-center rounded-sm bg-bg-subtle px-3 text-left text-sm tabular-nums shadow-(--shadow-border)",
-        active ? "ring-2 ring-primary/40 text-fg" : value ? "text-fg" : "text-muted",
-      )}
+      className={box}
     >
       {value || emptyLabel || "Nhập"}
     </button>

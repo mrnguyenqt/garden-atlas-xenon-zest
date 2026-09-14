@@ -37,6 +37,8 @@ export function stampLines(
   return [stampDateTime(takenAt), place, xy || "Chưa có toạ độ", gps, plot.name].filter(Boolean);
 }
 
+let lastPlace: { lat: number; lng: number; label?: string } | null = null;
+
 export function drawPhotoStamp(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -52,8 +54,15 @@ export function drawPhotoStamp(
   },
   takenAt = new Date(),
 ) {
-  const place =
-    plot.gpsLat && plot.gpsLng ? placeFromGpsOffline(plot.gpsLat, plot.gpsLng)?.label : undefined;
+  let place: string | undefined;
+  if (plot.gpsLat && plot.gpsLng) {
+    if (lastPlace && lastPlace.lat === plot.gpsLat && lastPlace.lng === plot.gpsLng) {
+      place = lastPlace.label;
+    } else {
+      place = placeFromGpsOffline(plot.gpsLat, plot.gpsLng)?.label;
+      lastPlace = { lat: plot.gpsLat, lng: plot.gpsLng, label: place };
+    }
+  }
   const lines = stampLines(plot, takenAt, place);
   const padPx = Math.max(12, Math.round(w * 0.02));
   const fontSize = Math.max(16, Math.round(w * 0.028));
@@ -85,6 +94,46 @@ export function canvasToJpegBlob(canvas: HTMLCanvasElement, quality = JPEG_QUALI
   });
 }
 
+let stampCanvas: HTMLCanvasElement | null = null;
+
+function stampSurface(w: number, h: number) {
+  const canvas = stampCanvas ?? document.createElement("canvas");
+  stampCanvas = canvas;
+  if (canvas.width !== w) canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
+  return canvas;
+}
+
+export async function stampBitmap(
+  src: ImageBitmap,
+  plot: {
+    name: string;
+    location: string;
+    coordX: number;
+    coordY: number;
+    gpsLat?: number;
+    gpsLng?: number;
+    gpsAccuracyM?: number;
+  },
+  takenAt = new Date(),
+) {
+  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(src.width, src.height));
+  const w = Math.max(1, Math.round(src.width * scale));
+  const h = Math.max(1, Math.round(src.height * scale));
+  const canvas = stampSurface(w, h);
+  const ctx = canvas.getContext("2d", { alpha: false });
+  if (!ctx) {
+    src.close();
+    throw new Error("canvas");
+  }
+  ctx.imageSmoothingEnabled = scale < 1;
+  ctx.imageSmoothingQuality = "low";
+  ctx.drawImage(src, 0, 0, w, h);
+  src.close();
+  drawPhotoStamp(ctx, w, h, plot, takenAt);
+  return canvasToJpegBlob(canvas);
+}
+
 export async function stampPlotPhoto(
   file: Blob,
   plot: {
@@ -96,23 +145,8 @@ export async function stampPlotPhoto(
     gpsLng?: number;
     gpsAccuracyM?: number;
   },
-): Promise<Blob> {
+) {
   const src = await createImageBitmap(file);
-  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(src.width, src.height));
-  const w = Math.max(1, Math.round(src.width * scale));
-  const h = Math.max(1, Math.round(src.height * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d", { alpha: false });
-  if (!ctx) {
-    src.close();
-    throw new Error("canvas");
-  }
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "medium";
-  ctx.drawImage(src, 0, 0, w, h);
-  src.close();
-  drawPhotoStamp(ctx, w, h, plot);
-  return canvasToJpegBlob(canvas);
+  return stampBitmap(src, plot);
 }
+

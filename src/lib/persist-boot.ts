@@ -1,3 +1,6 @@
+import { applyScreenshotBlock, useSecurity } from "@/lib/security";
+import { ensureAppFolder } from "@/lib/app-folder";
+import { bootUpdateOnce, reloadIfStaleChunk } from "@/lib/update-boot";
 import { useOps } from "@/lib/ops";
 import { usePlots } from "@/lib/store";
 import { useCustomSpecies } from "@/lib/custom-species";
@@ -64,15 +67,19 @@ async function rehydrateAll() {
   inflight = true;
   try {
     await Promise.all([
-      useOps.persist.rehydrate(),
-      usePlots.persist.rehydrate(),
-      useCustomSpecies.persist.rehydrate(),
-      useVn2000.persist.rehydrate(),
-      useTracks.persist.rehydrate(),
+      Promise.resolve(useOps.persist.rehydrate()),
+      Promise.resolve(usePlots.persist.rehydrate()),
+      Promise.resolve(useCustomSpecies.persist.rehydrate()),
+      Promise.resolve(useVn2000.persist.rehydrate()),
+      Promise.resolve(useTracks.persist.rehydrate()),
+      Promise.resolve(useSecurity.persist.rehydrate()),
     ]);
+    applyScreenshotBlock(useSecurity.getState().screenshotBlock);
     recover();
-    notify();
+  } catch {
+    recover();
   } finally {
+    notify();
     inflight = false;
   }
 }
@@ -81,6 +88,11 @@ async function rehydrateAll() {
 export function bootPersist() {
   if (started || typeof window === "undefined") return;
   started = true;
+  bootUpdateOnce();
+  window.addEventListener("unhandledrejection", (e) => {
+    if (reloadIfStaleChunk(e.reason)) e.preventDefault();
+  });
+  window.setTimeout(() => ensureAppFolder(), 0);
   const kick = () => {
     void rehydrateAll();
   };

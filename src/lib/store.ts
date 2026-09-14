@@ -328,47 +328,51 @@ export const usePlots = create<PlotState>()(
       version: 16,
       skipHydration: true,
       migrate: (persisted) => {
-        const state = persisted as PlotState;
-        const kinds = new Set(["dac-dung", "phong-ho", "san-xuat"]);
-        const stands = new Set(["Rừng tự nhiên", "Rừng trồng", "Diện tích chưa có rừng"]);
-        return {
-          ...state,
-          plots: (state.plots ?? []).map((p) => {
-            let stand = p.stand ?? "";
-            if (!stands.has(stand)) {
-              if (stand === "Đất trống") stand = "Diện tích chưa có rừng";
-              else if (stand === "Rừng trồng") stand = "Rừng trồng";
-              else stand = stand ? "Rừng tự nhiên" : "Rừng trồng";
-            }
-            return {
-              ...p,
-              projectId: p.projectId ?? "",
-              location: locationFromLegacy(p),
-              surveyor: p.surveyor ?? "",
-              stand,
-              forestSlug: kinds.has(p.forestSlug) ? p.forestSlug : "san-xuat",
-              coordX: p.coordX ?? 0,
-              coordY: p.coordY ?? 0,
-              gpsLat: p.gpsLat ?? 0,
-              gpsLng: p.gpsLng ?? 0,
-              gpsAccuracyM: p.gpsAccuracyM ?? 0,
-              gpsAt: p.gpsAt ?? "",
-              photos: p.photos ?? [],
-              trees: (p.trees ?? []).map((t) => {
-                const raw = t as TreeRecord & { dbhCm?: number };
-                const circCm =
-                  raw.circCm > 0 ? raw.circCm : circCmFromDbhCm(raw.dbhCm ?? 0);
-                return {
-                  ...t,
-                  circCm,
-                  quality: ((t.quality as string) === "dead" ? "D" : t.quality) as TreeQuality,
-                  formFactor: t.formFactor === 0.5 || t.formFactor === 0.45 ? t.formFactor : standFormFactor(stand),
-                  source: t.source === "nhanh" ? "nhanh" : "chuan",
-                };
-              }),
-            };
-          }),
-        };
+        try {
+          const state = persisted as PlotState;
+          const kinds = new Set(["dac-dung", "phong-ho", "san-xuat"]);
+          const stands = new Set(["Rừng tự nhiên", "Rừng trồng", "Diện tích chưa có rừng"]);
+          return {
+            ...state,
+            plots: (state.plots ?? []).map((p) => {
+              let stand = p.stand ?? "";
+              if (!stands.has(stand)) {
+                if (stand === "Đất trống") stand = "Diện tích chưa có rừng";
+                else if (stand === "Rừng trồng") stand = "Rừng trồng";
+                else stand = stand ? "Rừng tự nhiên" : "Rừng trồng";
+              }
+              return {
+                ...p,
+                projectId: p.projectId ?? "",
+                location: locationFromLegacy(p),
+                surveyor: p.surveyor ?? "",
+                stand,
+                forestSlug: kinds.has(p.forestSlug) ? p.forestSlug : "san-xuat",
+                coordX: p.coordX ?? 0,
+                coordY: p.coordY ?? 0,
+                gpsLat: p.gpsLat ?? 0,
+                gpsLng: p.gpsLng ?? 0,
+                gpsAccuracyM: p.gpsAccuracyM ?? 0,
+                gpsAt: p.gpsAt ?? "",
+                photos: p.photos ?? [],
+                trees: (p.trees ?? []).map((t) => {
+                  const raw = t as TreeRecord & { dbhCm?: number };
+                  const circCm =
+                    raw.circCm > 0 ? raw.circCm : circCmFromDbhCm(raw.dbhCm ?? 0);
+                  return {
+                    ...t,
+                    circCm,
+                    quality: ((t.quality as string) === "dead" ? "D" : t.quality) as TreeQuality,
+                    formFactor: t.formFactor === 0.5 || t.formFactor === 0.45 ? t.formFactor : standFormFactor(stand),
+                    source: t.source === "nhanh" ? "nhanh" : "chuan",
+                  };
+                }),
+              };
+            }),
+          };
+        } catch {
+          return persisted as PlotState;
+        }
       },
     },
   ),

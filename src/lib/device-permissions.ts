@@ -47,25 +47,82 @@ async function queryPerm(name: PermissionName): Promise<PermState> {
   }
 }
 
+const GRANTED_KEY = "rungvang-field-perm-granted";
+
+function readGrantedFlags(): FieldPerms {
+  try {
+    const raw = localStorage.getItem(GRANTED_KEY);
+    if (!raw) return { location: false, camera: false };
+    const parsed = JSON.parse(raw) as Partial<FieldPerms>;
+    return { location: Boolean(parsed.location), camera: Boolean(parsed.camera) };
+  } catch {
+    return { location: false, camera: false };
+  }
+}
+
+function writeGrantedFlags(patch: Partial<FieldPerms>) {
+  try {
+    const next = { ...readGrantedFlags(), ...patch };
+    localStorage.setItem(GRANTED_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
+async function cameraFromDevices(): Promise<PermState | null> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    if (devices.some((d) => d.kind === "videoinput" && d.label)) return "granted";
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+async function queryLocationState(): Promise<PermState> {
+  const api = await queryPerm("geolocation");
+  if (api === "granted" || api === "denied") return api;
+  if (readGrantedFlags().location) return "granted";
+  return api;
+}
+
+async function queryCameraState(): Promise<PermState> {
+  const api = await queryPerm("camera");
+  if (api === "granted") return "granted";
+  const fromDev = await cameraFromDevices();
+  if (fromDev) return fromDev;
+  if (api === "denied") return "denied";
+  if (readGrantedFlags().camera) return "granted";
+  return api;
+}
+
 export async function queryFieldPerms(): Promise<FieldPermStatus> {
-  const [location, camera] = await Promise.all([queryPerm("geolocation"), queryPerm("camera")]);
+  const [location, camera] = await Promise.all([queryLocationState(), queryCameraState()]);
+  if (location === "granted") writeGrantedFlags({ location: true });
+  if (camera === "granted") writeGrantedFlags({ camera: true });
   return { location, camera };
 }
 
 export function permLabel(state: PermState) {
-  if (state === "granted") return "Đã cấp";
+  if (state === "granted") return "Đã cho phép";
   if (state === "denied") return "Bị từ chối";
   if (state === "prompt") return "Chưa hỏi";
   return "Chưa rõ";
 }
 
 export async function requestLocation(): Promise<boolean> {
-  const now = await queryPerm("geolocation");
-  if (now === "granted") return true;
+  const now = await queryLocationState();
+  if (now === "granted") {
+    writeGrantedFlags({ location: true });
+    return true;
+  }
   if (!navigator.geolocation) return false;
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      () => resolve(true),
+      () => {
+        writeGrantedFlags({ location: true });
+        resolve(true);
+      },
       () => resolve(false),
       { enableHighAccuracy: true, timeout: 60000, maximumAge: 0 },
     );
@@ -73,8 +130,11 @@ export async function requestLocation(): Promise<boolean> {
 }
 
 export async function requestCamera(): Promise<boolean> {
-  const now = await queryPerm("camera");
-  if (now === "granted") return true;
+  const now = await queryCameraState();
+  if (now === "granted") {
+    writeGrantedFlags({ camera: true });
+    return true;
+  }
   const md = navigator.mediaDevices;
   if (!md?.getUserMedia) return false;
   try {
@@ -83,6 +143,7 @@ export async function requestCamera(): Promise<boolean> {
       audio: false,
     });
     for (const track of stream.getTracks()) track.stop();
+    writeGrantedFlags({ camera: true });
     return true;
   } catch {
     return false;

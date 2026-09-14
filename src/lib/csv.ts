@@ -1,4 +1,5 @@
 import { nf0, nf1, nf2, nf3 } from "@/lib/utils";
+import { saveToAppFolder } from "@/lib/app-folder";
 
 /** Excel tiếng Việt: dấu phân cột `;`, thập phân `,`. */
 export const CSV_SEP = ";";
@@ -146,6 +147,8 @@ type SavePicker = (options?: {
 
 /** Máy tính và điện thoại: chọn vị trí lưu file. */
 export async function saveFileAs(file: File) {
+  const ext = fileExtOf(file);
+  void saveToAppFolder(ext === ".kml" ? "tracklog" : "xuat", file.name, file);
   if (isPhoneLike()) publishFile(file);
   if (await saveNative(file)) {
     clearPendingExportFile();

@@ -1,9 +1,20 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-export function Input({ className, ...props }: React.ComponentProps<"input">) {
+function hideIme(el: HTMLElement) {
+  el.blur();
+}
+
+export function Input({ className, onKeyDown, enterKeyHint, ...props }: React.ComponentProps<"input">) {
   return (
     <input
+      enterKeyHint={enterKeyHint ?? "done"}
+      onKeyDown={(e) => {
+        onKeyDown?.(e);
+        if (e.key !== "Enter") return;
+        if (!e.defaultPrevented) e.preventDefault();
+        hideIme(e.currentTarget);
+      }}
       className={cn(
         "h-11 w-full rounded-sm bg-bg-subtle px-3 text-sm text-fg shadow-(--shadow-border) placeholder:text-subtle",
         "transition-[box-shadow] duration-(--motion-quick) ease-(--ease-out)",

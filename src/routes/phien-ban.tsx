@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ApkDownload } from "@/components/apk-download";
 import { RuntimePerms } from "@/components/runtime-perms";
+import { SecuritySettings } from "@/components/security-settings";
 import { APK_PACKAGE, APK_SECURITY, APK_SIG_SCHEMES, APP_BUILD, APP_NAME, APP_VERSION, RELEASES, apkCertFingerprint } from "@/lib/app-version";
 import { formatDate } from "@/lib/utils";
 
@@ -32,6 +33,11 @@ function VersionPage() {
         <p className="mt-3 text-xs text-muted">
           Cùng gói {APK_PACKAGE} và cùng chữ ký — hệ thống coi đây là cập nhật, số liệu giữ nguyên.
         </p>
+      </div>
+
+      <h2 className="font-display mt-10 text-xl italic">Cấu hình bảo mật</h2>
+      <div className="mx-auto mt-4 max-w-xl rounded-xl bg-bg-elevated p-5 shadow-(--shadow-border)">
+        <SecuritySettings />
       </div>
 
       <h2 className="font-display mt-10 text-xl italic">Tính toàn vẹn ứng dụng</h2>

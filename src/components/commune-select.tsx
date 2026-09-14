@@ -15,7 +15,7 @@ export function CommuneSelect({
   const selected = parseCommunes(value);
 
   return (
-    <Field label="Xã / phường" htmlFor={id}>
+    <Field label="Xã / phường" htmlFor={id} required>
       <div
         id={id}
         role="group"

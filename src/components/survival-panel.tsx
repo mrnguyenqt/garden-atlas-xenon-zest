@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import { SurvivalForm, CountedStemList } from "@/components/survival-form";
 import {
   SURVIVAL_METHODS,
+  expectedTreesOnStrip,
   survivalMethodLabel,
   survivalRate,
   useOps,
@@ -117,10 +118,7 @@ export function SurvivalDetail({ record }: { record: SurvivalCheck }) {
   const dead = record.dead ?? Math.max(0, record.planted - record.alive);
   const replanted = record.replanted ?? 0;
   const bang = (record.method || "o-tieu-chuan") === "bang";
-  const expectedOnStrip =
-    bang && record.widthM > 0 && record.lengthM > 0
-      ? Math.floor(record.lengthM / record.widthM) + 1
-      : 0;
+  const expectedOnStrip = bang ? expectedTreesOnStrip(record.lengthM, record.widthM) : 0;
   const size =
     bang && record.lengthM && record.widthM
       ? `${nf0.format(record.lengthM)} m · khoảng cách cây ${nf1.format(record.widthM)} m`

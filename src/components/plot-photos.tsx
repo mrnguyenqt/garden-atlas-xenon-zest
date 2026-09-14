@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { Camera, Check, Images, Trash2, X } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
+import { Camera, Check, Images, Trash2, X, Zap, ZapOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { StoredImg } from "@/components/stored-img";
-import { canvasToJpegBlob, drawPhotoStamp, PHOTO_MAX_EDGE, stampPlotPhoto } from "@/lib/plot-photo";
+import { captureStill, openFieldCamera, prefetchFieldCamera, setTorch, setZoom, stopFieldSession, tapFocus, type FieldCamCaps, type FieldSession } from "@/lib/field-camera";
+import { stampBitmap, stampPlotPhoto } from "@/lib/plot-photo";
+import { saveToAppFolder } from "@/lib/app-folder";
 import { photoRef, savePhotoBlob } from "@/lib/photo-db";
 import { useBackToClose } from "@/lib/phone-nav";
 import { usePlots, type Plot } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 const MAX_PHOTOS = 12;
 
@@ -31,82 +34,106 @@ function FieldCamera({
   onFail: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const camRef = useRef<FieldSession | null>(null);
   const failRef = useRef(onFail);
   failRef.current = onFail;
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [torch, setTorchOn] = useState(false);
+  const [caps, setCaps] = useState<FieldCamCaps>({ torch: false, zoom: null, tapFocus: false });
+  const [zoom, setZoomVal] = useState(1);
+  const [focusRing, setFocusRing] = useState<{ x: number; y: number } | null>(null);
   useBackToClose(!hidden, onClose);
 
   useEffect(() => {
     let dead = false;
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280, max: 1600 },
-            height: { ideal: 720, max: 1200 },
-            frameRate: { ideal: 24, max: 30 },
-          },
-          audio: false,
-        });
+        const cam = await openFieldCamera();
         if (dead) {
-          for (const t of stream.getTracks()) t.stop();
+          stopFieldSession(cam);
           return;
         }
-        streamRef.current = stream;
+        camRef.current = cam;
+        setCaps(cam.features);
+        if (cam.features.zoom) setZoomVal(cam.features.zoom.min || 1);
         const video = videoRef.current;
-        if (!video) return;
-        video.srcObject = stream;
+        if (!video) {
+          stopFieldSession(cam);
+          camRef.current = null;
+          return;
+        }
+        video.srcObject = cam.stream;
         video.setAttribute("playsinline", "true");
+        video.setAttribute("webkit-playsinline", "true");
         await video.play();
-        setReady(true);
+        if (!dead) setReady(true);
       } catch {
         if (!dead) failRef.current();
       }
     })();
     return () => {
       dead = true;
-      for (const t of streamRef.current?.getTracks() ?? []) t.stop();
-      streamRef.current = null;
+      stopFieldSession(camRef.current);
+      camRef.current = null;
     };
   }, []);
 
+  useEffect(() => {
+    if (hidden && torch && camRef.current) {
+      void setTorch(camRef.current.track, false);
+      setTorchOn(false);
+    }
+  }, [hidden, torch]);
+
   function stop() {
-    for (const t of streamRef.current?.getTracks() ?? []) t.stop();
-    streamRef.current = null;
+    stopFieldSession(camRef.current);
+    camRef.current = null;
+  }
+
+  async function toggleTorch() {
+    const track = camRef.current?.track;
+    if (!track || !caps.torch) return;
+    const next = !torch;
+    if (await setTorch(track, next)) setTorchOn(next);
+  }
+
+  async function onZoom(v: number) {
+    const track = camRef.current?.track;
+    if (!track) return;
+    setZoomVal(v);
+    await setZoom(track, v);
+  }
+
+  async function onTap(e: PointerEvent<HTMLVideoElement>) {
+    const track = camRef.current?.track;
+    const video = videoRef.current;
+    if (!track || !video || !caps.tapFocus) return;
+    const rect = video.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setFocusRing({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+    window.setTimeout(() => setFocusRing(null), 700);
+    await tapFocus(track, x, y);
   }
 
   async function shoot() {
     const video = videoRef.current;
-    if (!video || !video.videoWidth || busy) return;
+    const cam = camRef.current;
+    if (!video || !cam || busy) return;
     setBusy(true);
     try {
-      const vw = video.videoWidth;
-      const vh = video.videoHeight;
-      const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(vw, vh));
-      const w = Math.max(1, Math.round(vw * scale));
-      const h = Math.max(1, Math.round(vh * scale));
-      const canvas = canvasRef.current ?? document.createElement("canvas");
-      canvasRef.current = canvas;
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext("2d", { alpha: false });
-      if (!ctx) return;
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "medium";
-      ctx.drawImage(video, 0, 0, w, h);
+      const bitmap = await captureStill(cam.capture, video);
       const takenAt = new Date();
-      drawPhotoStamp(ctx, w, h, plot, takenAt);
-      const blob = await canvasToJpegBlob(canvas);
+      const blob = await stampBitmap(bitmap, plot, takenAt);
       onCapture({
         blob,
         preview: URL.createObjectURL(blob),
         takenAt: takenAt.toISOString(),
         stamped: true,
       });
+    } catch {
+      /* giữ máy ảnh mở */
     } finally {
       setBusy(false);
     }
@@ -119,25 +146,66 @@ function FieldCamera({
         style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <p className="text-sm font-medium text-white">Chụp ảnh</p>
-        <button
-          type="button"
-          aria-label="Thoát"
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-white"
-          onClick={() => {
-            stop();
-            onClose();
-          }}
-        >
-          <X className="size-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {caps.torch ? (
+            <button
+              type="button"
+              aria-label={torch ? "Tắt đèn" : "Bật đèn"}
+              className={cn(
+                "flex size-11 items-center justify-center rounded-full",
+                torch ? "bg-amber-300 text-black" : "bg-white/15 text-white",
+              )}
+              onClick={() => void toggleTorch()}
+            >
+              {torch ? <Zap className="size-5" /> : <ZapOff className="size-5" />}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            aria-label="Thoát"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white/15 text-white"
+            onClick={() => {
+              stop();
+              onClose();
+            }}
+          >
+            <X className="size-5" />
+          </button>
+        </div>
       </div>
-      <video
-        ref={videoRef}
-        className="min-h-0 w-full flex-1 object-cover"
-        playsInline
-        muted
-        autoPlay
-      />
+      <div className="relative min-h-0 flex-1 bg-black">
+        <video
+          ref={videoRef}
+          className={cn("h-full w-full bg-black object-cover", ready ? "visible opacity-100" : "invisible")}
+          playsInline
+          muted
+          autoPlay
+          disablePictureInPicture
+          controls={false}
+          poster=""
+          onPointerUp={onTap}
+        />
+        {ready ? null : <div className="absolute inset-0 z-10 bg-black" />}
+        {focusRing ? (
+          <span
+            className="pointer-events-none absolute size-16 -translate-x-1/2 -translate-y-1/2 rounded-sm border-2 border-white/90"
+            style={{ left: focusRing.x, top: focusRing.y }}
+          />
+        ) : null}
+        {caps.zoom ? (
+          <input
+            type="range"
+            min={caps.zoom.min}
+            max={caps.zoom.max}
+            step={caps.zoom.step || 0.1}
+            value={zoom}
+            aria-label="Zoom"
+            className="absolute top-1/2 right-3 h-36 w-8 -translate-y-1/2 appearance-none bg-transparent"
+            style={{ writingMode: "vertical-lr", direction: "rtl" }}
+            onChange={(e) => void onZoom(Number(e.target.value))}
+          />
+        ) : null}
+      </div>
       <div
         className="flex flex-col items-center gap-2 px-5 pt-3"
         style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
@@ -149,7 +217,9 @@ function FieldCamera({
           onClick={() => void shoot()}
           className="size-16 rounded-full border-[5px] border-white bg-white/90 disabled:opacity-40"
         />
-        <p className="text-xs text-white/80">{ready ? (busy ? "Đang chụp…" : "Bấm để chụp") : "Đang mở camera…"}</p>
+        <p className="text-xs text-white/80">
+          {ready ? (busy ? "Đang chụp…" : caps.tapFocus ? "Chạm để lấy nét · Bấm để chụp" : "Bấm để chụp") : "Đang mở camera…"}
+        </p>
       </div>
     </div>
   );
@@ -205,6 +275,9 @@ export function PlotPhotos({ plot }: { plot: Plot }) {
       const id = crypto.randomUUID();
       await savePhotoBlob(id, blob);
       addPhoto(plot.id, { id, src: photoRef(id), takenAt: draft.takenAt });
+      const stamp = (draft.takenAt || new Date().toISOString()).replace(/[:.]/g, "-");
+      const file = `${plot.name || "OTC"}-${stamp}.jpg`;
+      void saveToAppFolder("anh-hien-truong", file, blob);
       URL.revokeObjectURL(draft.preview);
       setDraft(null);
       setCam(false);
@@ -239,7 +312,12 @@ export function PlotPhotos({ plot }: { plot: Plot }) {
               Thư viện
             </Button>
           ) : null}
-          <Button size="sm" disabled={busy || full} onClick={openCamera}>
+          <Button
+            size="sm"
+            disabled={busy || full}
+            onPointerDown={() => prefetchFieldCamera()}
+            onClick={openCamera}
+          >
             <Camera />
             Chụp ảnh
           </Button>
