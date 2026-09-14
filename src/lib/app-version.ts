@@ -1,6 +1,6 @@
 export const APP_NAME = "Rừng vàng";
-export const APP_VERSION = "1.23";
-export const APP_BUILD = "RVver1.23";
+export const APP_VERSION = "1.24";
+export const APP_BUILD = "RVver1.24";
 export const APP_RELEASED = "2026-09-14";
 export const APP_AUTHOR = "Đăng Nguyên";
 
@@ -8,7 +8,7 @@ export const APK_SIGNER = "CN=Dang Nguyen";
 export const APK_SIG_SCHEMES = "v2 + v3";
 export const APK_CERT_SHA256 = "7A35A95FE4765A2386A63F675E411D4D72433370CFD65FC61995553BC1DE0914";
 export const APK_PACKAGE = "vn.rungvang.app";
-export const APK_FILE_SHA256 = "B68493E6094D546ED3FC1A31DD0F957CEEFF34D076F16ECB62176AC0CC190AE7";
+export const APK_FILE_SHA256 = "0F891E7BBB91F444B1AF261C3CC2CEF3B301CFA9CAB5D53CE6AE2D92D5D5F343";
 
 export function apkCertFingerprint() {
   return APK_CERT_SHA256.replace(/(.{2})/g, "$1:").slice(0, -1);
@@ -29,6 +29,14 @@ export const RELEASES: {
   date: string;
   notes: string[];
 }[] = [
+  {
+    version: "1.24",
+    build: "RVver1.24",
+    date: "2026-09-14",
+    notes: [
+      "Ảnh hiện trường độ phân giải cao; bỏ Thư viện trên ô; dán toạ độ X/Y khi ấn giữ.",
+    ],
+  },
   {
     version: "1.23",
     build: "RVver1.23",

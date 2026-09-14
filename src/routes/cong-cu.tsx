@@ -436,11 +436,10 @@ function LotLookup() {
       ) : (
         <div className="flex flex-col gap-3">
           {xa ? <Fact k="Xã / phường" v={xa} /> : null}
-          {projects.map((row, i) => {
+          {projects.map((row) => {
             const [dt, loai, nam, duAn] = row;
             return (
-              <div key={`pj-${parts.tieuKhu}-${parts.khoanh}-${parts.lo}-${i}`} className="flex flex-col gap-2">
-                {projects.length > 1 ? <p className="text-xs text-muted">Phần {i + 1}</p> : null}
+              <div key={`pj-${parts.tieuKhu}-${parts.khoanh}-${parts.lo}`} className="flex flex-col gap-2">
                 <Fact k="DT thiết kế" v={`${nf2.format(dt)} ha`} />
                 <Fact k="Loài cây" v={loai || "—"} />
                 <Fact k="Năm trồng" v={nam ? String(nam) : "—"} />

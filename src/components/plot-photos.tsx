@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
-import { Camera, Check, Images, Trash2, X, Zap, ZapOff } from "lucide-react";
+import { Camera, Check, Trash2, X, Zap, ZapOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PhotoGallery } from "@/components/photo-gallery";
 import { StoredImg } from "@/components/stored-img";
@@ -306,12 +306,6 @@ export function PlotPhotos({ plot }: { plot: Plot }) {
           Ảnh hiện trường
         </h2>
         <div className="flex shrink-0 items-center gap-2">
-          {photos.length > 0 ? (
-            <Button size="sm" variant="secondary" onClick={() => setGallery(0)}>
-              <Images />
-              Thư viện
-            </Button>
-          ) : null}
           <Button
             size="sm"
             disabled={busy || full}

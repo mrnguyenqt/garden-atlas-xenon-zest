@@ -484,7 +484,13 @@ export const LOT_PROJECTS: Record<string, LotProjectRow[]> = {
 
 
 export function lotProjectRows(tieuKhu: string, khoanh: string, lo: string): LotProjectRow[] {
-  return LOT_PROJECTS[`${tieuKhu}|${khoanh}|${lo}`] ?? [];
+  const rows = LOT_PROJECTS[`${tieuKhu}|${khoanh}|${lo}`] ?? [];
+  if (rows.length <= 1) return rows;
+  const best = rows.reduce((a, b) => {
+    if (Boolean(a[2]) !== Boolean(b[2])) return a[2] ? a : b;
+    return a[0] >= b[0] ? a : b;
+  });
+  return [best];
 }
 
 function natCmp(a: string, b: string) {

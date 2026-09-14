@@ -1,13 +1,22 @@
 type PhotoRange = { min: number; max: number; step?: number };
 
+type PhotoCaps = {
+  imageWidth?: PhotoRange;
+  imageHeight?: PhotoRange;
+};
+
 type ImageCaptureLike = {
   grabFrame: () => Promise<ImageBitmap>;
+  takePhoto?: (settings?: Record<string, unknown>) => Promise<Blob>;
+  getPhotoCapabilities?: () => Promise<PhotoCaps>;
 };
 
 type AdvCaps = {
   torch?: boolean;
   zoom?: PhotoRange;
   focusMode?: string[];
+  exposureMode?: string[];
+  whiteBalanceMode?: string[];
   pointsOfInterest?: boolean;
 };
 
@@ -19,8 +28,9 @@ export type FieldCamCaps = {
 
 const PREVIEW: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },
-  width: { ideal: 960 },
-  height: { ideal: 720 },
+  width: { ideal: 3840 },
+  height: { ideal: 2160 },
+  aspectRatio: { ideal: 4 / 3 },
 };
 
 function imageCaptureOf(track: MediaStreamTrack): ImageCaptureLike | null {
@@ -75,7 +85,24 @@ function tuneTrack(track: MediaStreamTrack) {
   const caps = capsOf(track);
   const patch: Record<string, unknown> = {};
   if (caps.focusMode?.includes("continuous")) patch.focusMode = "continuous";
+  if (caps.exposureMode?.includes("continuous")) patch.exposureMode = "continuous";
+  if (caps.whiteBalanceMode?.includes("continuous")) patch.whiteBalanceMode = "continuous";
   if (Object.keys(patch).length) void applyAdv(track, patch);
+}
+
+async function boostPreview(track: MediaStreamTrack) {
+  try {
+    const caps = (track.getCapabilities?.() ?? {}) as { width?: PhotoRange; height?: PhotoRange };
+    const maxW = caps.width?.max;
+    const maxH = caps.height?.max;
+    if (!maxW || !maxH) return;
+    await track.applyConstraints({
+      width: { ideal: Math.min(maxW, 3840) },
+      height: { ideal: Math.min(maxH, 2880) },
+    });
+  } catch {
+    /* giữ độ phân giải trình duyệt cấp */
+  }
 }
 
 async function createSession(): Promise<FieldSession> {
@@ -85,6 +112,7 @@ async function createSession(): Promise<FieldSession> {
     for (const t of stream.getTracks()) t.stop();
     throw new Error("camera");
   }
+  await boostPreview(track);
   tuneTrack(track);
   return { stream, track, capture: imageCaptureOf(track), features: featuresOf(track) };
 }
@@ -131,17 +159,67 @@ export async function tapFocus(track: MediaStreamTrack, x: number, y: number) {
   return false;
 }
 
+function px(bmp: ImageBitmap) {
+  return bmp.width * bmp.height;
+}
+
+async function bitmapFromPhoto(capture: ImageCaptureLike): Promise<ImageBitmap | null> {
+  if (!capture.takePhoto) return null;
+  const tryPhoto = async (settings?: Record<string, unknown>) => {
+    const blob = await capture.takePhoto!(settings);
+    if (!blob || blob.size < 1024) return null;
+    return createImageBitmap(blob);
+  };
+  let caps: PhotoCaps | null = null;
+  try {
+    caps = capture.getPhotoCapabilities ? await capture.getPhotoCapabilities() : null;
+  } catch {
+    caps = null;
+  }
+  const w = caps?.imageWidth?.max;
+  const h = caps?.imageHeight?.max;
+  const attempts: Array<Record<string, unknown> | undefined> = [];
+  if (w && h) attempts.push({ imageWidth: w, imageHeight: h });
+  if (w) attempts.push({ imageWidth: w });
+  attempts.push(undefined);
+  for (const settings of attempts) {
+    try {
+      const shot = await tryPhoto(settings);
+      if (shot) return shot;
+    } catch {
+      /* thử cấu hình khác */
+    }
+  }
+  return null;
+}
+
 export async function captureStill(
   capture: ImageCaptureLike | null,
   video: HTMLVideoElement,
 ): Promise<ImageBitmap> {
+  let best: ImageBitmap | null = null;
+  const keep = (bmp: ImageBitmap | null) => {
+    if (!bmp) return;
+    if (!best || px(bmp) > px(best)) {
+      best?.close();
+      best = bmp;
+    } else {
+      bmp.close();
+    }
+  };
   if (capture) {
-    try {
-      return await capture.grabFrame();
-    } catch {
-      /* video */
+    keep(await bitmapFromPhoto(capture));
+    if (!best || Math.max(best.width, best.height) < 2000) {
+      try {
+        keep(await capture.grabFrame());
+      } catch {
+        /* video */
+      }
     }
   }
-  if (!video.videoWidth) throw new Error("preview");
-  return createImageBitmap(video);
+  if ((!best || Math.max(best.width, best.height) < 2000) && video.videoWidth) {
+    keep(await createImageBitmap(video));
+  }
+  if (!best) throw new Error("preview");
+  return best;
 }

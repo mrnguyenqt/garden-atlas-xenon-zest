@@ -225,6 +225,7 @@ export function PlotForm({
           id="plot-loc"
           value={draft.location}
           onChange={(location) => set("location", location)}
+          allowCustom
         />
       {gpsAccuracyGrade(draft.gpsAccuracyM).ok ? null : (
       <GpsVerifyButton

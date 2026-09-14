@@ -1,8 +1,8 @@
 import { gpsWgsLabel } from "@/lib/gps";
 import { placeFromGpsOffline } from "@/lib/place";
 
-export const PHOTO_MAX_EDGE = 1280;
-const JPEG_QUALITY = 0.72;
+export const PHOTO_MAX_EDGE = 4096;
+const JPEG_QUALITY = 0.92;
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -127,7 +127,7 @@ export async function stampBitmap(
     throw new Error("canvas");
   }
   ctx.imageSmoothingEnabled = scale < 1;
-  ctx.imageSmoothingQuality = "low";
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(src, 0, 0, w, h);
   src.close();
   drawPhotoStamp(ctx, w, h, plot, takenAt);
